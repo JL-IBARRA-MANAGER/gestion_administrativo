@@ -1,0 +1,55 @@
+version: '3.9'
+services:
+  # Servicio para NestJS
+  backend:
+    # build:
+    #   context: .
+      # dockerfile: ./docker/Dockerfile
+    build: .
+    container_name: nest-backend
+    ports:
+      - "4000:4000"
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+    volumes:
+      - ./:/app
+    networks:
+      - nest-network
+
+  # Servicio de PostgreSQL
+  postgres:
+    image: postgres:15
+    container_name: postgres-db
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DATABASE}
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - nest-network
+
+  # Servicio de pgAdmin
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "8083:80"
+    depends_on:
+      - postgres
+    networks:
+      - nest-network
+
+volumes:
+  pgdata:
+
+networks:
+  nest-network:
+    driver: bridge
