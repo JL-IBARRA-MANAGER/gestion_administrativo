@@ -21,4 +21,14 @@ export class GlobalController {
   async getCantones(@Query('id_provincial') id_provincial: number) {  
     return this.globalService.getCantones(id_provincial);  
   }  
+
+  @Get('global-logo')  
+  @ApiOperation({   
+    summary: 'Obtiene los logos globales activos',   
+    description: 'Recupera los logos con estado activo (logo_estado = 1)'   
+  })  
+  async getGlobalLogos() {  
+    return this.globalService.getGlobalLogos();  
+  } 
+
 }
