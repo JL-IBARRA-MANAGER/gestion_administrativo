@@ -163,14 +163,8 @@ export class ConfiguracionCitasController {
 
   @Get('medicos')  
   @ApiOperation({ summary: 'Visualización de médicos' })  
-  @ApiQuery({  
-    name: 'citacId',  
-    type: Number,  
-    required: true,  
-    description: 'ID del área de conocimiento para filtrar médicos'  
-  })  
-  async obtenerMedicos(@Query('citacId') citacId?: number) {  
-    return this.configuracionService.obtenerMedicos(citacId);  
-  }   
+  async obtenerMedicos() {  
+    return this.configuracionService.obtenerMedicos();  
+  }    
   
 }  

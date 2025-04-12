@@ -253,24 +253,24 @@ export class ConfiguracionCitasService {
   } 
 
 
-  async obtenerMedicos(citacId: number): Promise<any[]> {  
+  async obtenerMedicos(): Promise<any[]> {  
     const query = `  
       SELECT   
-        u.usu_nombre || ' ' || u.usu_apellido AS "medico",  
-        ac.citac_nombre AS "area",  
-        cm.citm_descripcion AS "descripcion",  
-        cm.citm_estado AS "estado"  
+        cm.citm_id AS "citm_id",  
+        u.usu_nombre AS "Nombre",  
+        u.usu_apellido AS "Apellido",   
+        ac.citac_nombre AS "Área del conocimiento",  
+        cm.citm_descripcion AS "Descripción",  
+        cm.citm_estado AS "citm_estado"  
       FROM   
         public.tbl_citas_medicos cm  
       JOIN   
         public.tbl_usuarios u ON cm.usu_id = u.usu_id  
       JOIN   
         public.tbl_citas_areas_conocimiento ac ON cm.citac_id = ac.citac_id  
-      WHERE   
-        cm.citm_estado = 1 AND cm.citac_id = $1  
     `;  
-    return this.configuracionRepository.query(query, [citacId]);  
-  }     
+    return this.configuracionRepository.query(query);  
+  }       
 
  
 }  
