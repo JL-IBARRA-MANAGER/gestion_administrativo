@@ -170,7 +170,6 @@ export class ConfiguracionCitasService {
         citdnl_descripcion AS "descripcion",  
         citdnl_estado AS "estado"  
       FROM public.tbl_citas_dias_no_laborales 
-      WHERE citdnl_estado = true 
     `;  
     return this.configuracionRepository.query(query);  
   }  
@@ -252,6 +251,26 @@ export class ConfiguracionCitasService {
 
     return this.configuracionRepository.query(query, values);  
   } 
+
+
+  async obtenerMedicos(citacId: number): Promise<any[]> {  
+    const query = `  
+      SELECT   
+        u.usu_nombre || ' ' || u.usu_apellido AS "medico",  
+        ac.citac_nombre AS "area",  
+        cm.citm_descripcion AS "descripcion",  
+        cm.citm_estado AS "estado"  
+      FROM   
+        public.tbl_citas_medicos cm  
+      JOIN   
+        public.tbl_usuarios u ON cm.usu_id = u.usu_id  
+      JOIN   
+        public.tbl_citas_areas_conocimiento ac ON cm.citac_id = ac.citac_id  
+      WHERE   
+        cm.citm_estado = 1 AND cm.citac_id = $1  
+    `;  
+    return this.configuracionRepository.query(query, [citacId]);  
+  }     
 
  
 }  
