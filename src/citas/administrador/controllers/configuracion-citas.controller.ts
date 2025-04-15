@@ -14,6 +14,8 @@ import { CrearDiaNoLaboralDto } from '../dtos/crear-dia-no-laboral.dto';
 import { ActualizarDiaNoLaboralDto } from '../dtos/actualizar-dia-no-laboral.dto';  
 import { CrearEspecialidadDto } from '../dtos/crear-especialidad.dto'; 
 import { CrearAreaConocimientoDto } from '../dtos/crear-area-conocimiento.dto'; 
+import { CreateMedicoDto } from '../dtos/create-medico.dto'; 
+import { CreateHorarioMedicoDto } from '../dtos/create-horario-medico.dto'; 
 
 
 
@@ -166,5 +168,55 @@ export class ConfiguracionCitasController {
   async obtenerMedicos() {  
     return this.configuracionService.obtenerMedicos();  
   }    
+
+
+  @Post('medicos-registrar')  
+  @ApiOperation({ summary: 'Registra un usuario como médico' })  
+  async registrarMedico(@Body() createMedicoDto: CreateMedicoDto) {  
+    return this.configuracionService.registrarMedico(createMedicoDto);  
+  }  
+
+  @Post('medicos-horario')  
+  @ApiOperation({ summary: 'Registro del horario laboral por médico' })  
+  async registrarHorarioMedico(@Body() createHorarioMedicoDto: CreateHorarioMedicoDto) {  
+    return this.configuracionService.registrarHorarioMedico(createHorarioMedicoDto);  
+  }  
+
+
+  @Get('medico-horario/:citm_id')  
+  @ApiOperation({  
+    summary: 'Devuelve el horario de un medico por citm_id'  
+  })  
+  @ApiParam({  
+    name: 'citm_id',  
+    type: 'number'  
+  })  
+  async obtenerHorarioMedico(@Param('citm_id') citm_id: number) {  
+    return this.configuracionService.obtenerHorarioMedico(citm_id);  
+  }  
+
+
+
+  @Post('medicos-horario')  
+  @ApiOperation({   
+    summary: 'Registro del horario laboral por médico',  
+    description: 'Endpoint para registrar el horario laboral de un médico específico'  
+  })  
+  @ApiBody({  
+    description: 'Datos para el registro del horario del médico',  
+    type: CreateHorarioMedicoDto  
+  })  
+  @ApiResponse({   
+    status: 201,   
+    description: 'Horario de médico registrado exitosamente'   
+  })  
+  @ApiResponse({   
+    status: 400,   
+    description: 'Error en los datos de entrada'   
+  })  
+  async registrarHorarioMedico(@Body() createHorarioMedicoDto: CreateHorarioMedicoDto) {  
+    return this.configuracionService.registrarHorarioMedico(createHorarioMedicoDto);  
+  }  
+
   
 }  

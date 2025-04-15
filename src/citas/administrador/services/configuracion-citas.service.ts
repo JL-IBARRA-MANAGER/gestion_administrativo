@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException } from '@nestjs/common';  
+import { Injectable, BadRequestException, HttpException, HttpStatus } from '@nestjs/common';  
 import { InjectRepository } from '@nestjs/typeorm';  
 import { Repository } from 'typeorm';  
 import { ConfiguracionCitas } from '../entities/configuracion-citas.entity';  
@@ -7,6 +7,8 @@ import { ActualizarDiaNoLaboralDto } from '../dtos/actualizar-dia-no-laboral.dto
 import { ActualizarConfiguracionCitasDto } from '../dtos/actualizar-configuracion-citas.dto'; 
 import { CrearEspecialidadDto } from '../dtos/crear-especialidad.dto'; 
 import { CrearAreaConocimientoDto } from '../dtos/crear-area-conocimiento.dto'; 
+import { CreateMedicoDto } from '../dtos/create-medico.dto';
+import { CreateHorarioMedicoDto } from '../dtos/create-horario-medico.dto'; 
 
 @Injectable()  
 export class ConfiguracionCitasService {  
@@ -272,5 +274,150 @@ export class ConfiguracionCitasService {
     return this.configuracionRepository.query(query);  
   }       
 
+
+
+  async registrarMedico(createMedicoDto: CreateMedicoDto): Promise<any> {  
+    const { usu_id, citac_id, citm_descripcion } = createMedicoDto;  
+
+    try {  
+      // Verificar si el usuario ya está registrado como médico  
+      const existeMedico = await this.configuracionRepository.query(`  
+        SELECT citm_id   
+        FROM public.tbl_citas_medicos   
+        WHERE usu_id = $1  
+      `, [usu_id]);  
+
+      // Si ya existe, lanzar una excepción  
+      if (existeMedico.length > 0) {  
+        throw new HttpException(  
+          'El usuario ya está registrado como médico',   
+          HttpStatus.BAD_REQUEST  
+        );  
+      }  
+
+      // Iniciar transacción  
+      const queryRunner = this.configuracionRepository.manager.connection.createQueryRunner();  
+      await queryRunner.connect();  
+      await queryRunner.startTransaction();  
+
+      try {  
+        // Insertar en tbl_citas_medicos  
+        const medicoQuery = `  
+          INSERT INTO public.tbl_citas_medicos   
+          (usu_id, citac_id, citm_descripcion, citm_estado)  
+          VALUES ($1, $2, $3, 1)  
+          RETURNING citm_id  
+        `;  
+        const medicoResult = await queryRunner.query(medicoQuery, [  
+          usu_id,   
+          citac_id,   
+          citm_descripcion  
+        ]);  
+
+        // Verificar si ya tiene el rol de médico  
+        const rolExistente = await queryRunner.query(`  
+          SELECT *   
+          FROM public.tbl_rol_usuario   
+          WHERE rol_id = 9 AND usu_id = $1  
+        `, [usu_id]);  
+
+        // Insertar en tbl_rol_usuario solo si no existe  
+        if (rolExistente.length === 0) {  
+          const rolUsuarioQuery = `  
+            INSERT INTO public.tbl_rol_usuario   
+            (rol_id, usu_id)  
+            VALUES (9, $1)  
+          `;  
+          await queryRunner.query(rolUsuarioQuery, [usu_id]);  
+        }  
+
+        // Commit de la transacción  
+        await queryRunner.commitTransaction();  
+
+        return {  
+          message: 'Médico registrado exitosamente',  
+          citm_id: medicoResult[0].citm_id  
+        };  
+      } catch (insertError) {  
+        // Rollback en caso de error  
+        await queryRunner.rollbackTransaction();  
+
+        // Manejo de error de restricción única  
+        if (insertError.code === '23505') {  
+          throw new HttpException(  
+            'Ya existe un registro para este usuario',   
+            HttpStatus.CONFLICT  
+          );  
+        }  
+
+        throw new HttpException(  
+          'Error al registrar el médico',   
+          HttpStatus.INTERNAL_SERVER_ERROR  
+        );  
+      } finally {  
+        await queryRunner.release();  
+      }  
+    } catch (error) {  
+      // Manejo de errores generales  
+      throw new HttpException(  
+        'Error en el proceso de registro',   
+        HttpStatus.INTERNAL_SERVER_ERROR  
+      );  
+    }  
+  }  
+
+
+
+  async obtenerHorarioMedico(citm_id: number): Promise<any> {  
+    const query = `  
+      SELECT   
+        ds.citds_nombre AS "Día",  
+        hm.cithm_hora_inicio AS "Hora inicio",  
+        hm.cithm_hora_fin AS "Hora fin"  
+      FROM public.tbl_citas_horarios_medico hm  
+      INNER JOIN public.tbl_citas_dias_semana ds ON ds.citds_id = hm.citds_id  
+      INNER JOIN public.tbl_citas_medicos m ON m.citm_id = hm.citm_id  
+      WHERE m.citm_id = $1 AND m.citm_estado = true  
+    `;  
+
+    try {  
+      const resultado = await this.configuracionRepository.query(query, [citm_id]);  
+      return resultado;  
+    } catch (error) {  
+      throw new BadRequestException('Error al obtener horario del médico');  
+    }  
+  }  
+
+
  
+  async registrarHorarioMedico(dto: CreateHorarioMedicoDto): Promise<any> {  
+    console.log('DTO recibido:', dto);  
+
+    const query = `  
+    INSERT INTO public.tbl_citas_horarios_medico   
+    (citm_id, citds_id, cithm_hora_inicio, cithm_hora_fin, cithm_activo)   
+    VALUES ($1, $2, $3, $4, true)  
+    RETURNING *  
+    `;  
+    
+    const valores = [  
+      dto.citm_id,   
+      dto.citds_id,   
+      dto.cithm_hora_inicio,  
+      dto.cithm_hora_fin  
+    ];  
+
+    console.log('Valores a insertar:', valores);  
+
+    try {  
+      const resultado = await this.configuracionRepository.query(query, valores);  
+      console.log('Resultado de inserción:', resultado);  
+      return resultado[0];  
+    } catch (error) {  
+      console.error('Error completo al registrar horario de médico:', error);  
+      throw new BadRequestException(error.message || 'Error al registrar horario de médico');  
+    }  
+  }  
+
+
 }  
