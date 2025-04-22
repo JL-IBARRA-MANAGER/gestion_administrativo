@@ -420,4 +420,39 @@ export class ConfiguracionCitasService {
   }  
 
 
+  async verHorarioMedico(citm_id: number): Promise<any> {
+    const query = `
+      SELECT 
+        ds.citds_nombre AS "Día",
+        json_agg(
+          json_build_object(
+            'hora_inicio', hm.cithm_hora_inicio,
+            'hora_fin', hm.cithm_hora_fin
+          )   
+          ORDER BY hm.cithm_hora_inicio ASC 
+        ) AS "horarios"
+      FROM public.tbl_citas_horarios_medico hm
+      INNER JOIN public.tbl_citas_dias_semana ds ON ds.citds_id = hm.citds_id
+      WHERE hm.citm_id = $1 AND hm.cithm_activo = true
+      GROUP BY ds.citds_nombre, ds.citds_id
+      ORDER BY 
+        CASE ds.citds_nombre
+          WHEN 'Lunes' THEN 1
+          WHEN 'Martes' THEN 2
+          WHEN 'Miércoles' THEN 3
+          WHEN 'Jueves' THEN 4
+          WHEN 'Viernes' THEN 5
+          WHEN 'Sábado' THEN 6
+          WHEN 'Domingo' THEN 7
+        END
+    `;
+
+    try {
+      const resultado = await this.configuracionRepository.query(query, [citm_id]);
+      return resultado;
+    } catch (error) {
+      throw new BadRequestException('Error al obtener horario del médico');
+    }
+  }
+
 }  

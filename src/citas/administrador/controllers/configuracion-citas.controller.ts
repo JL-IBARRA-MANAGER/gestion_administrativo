@@ -176,14 +176,14 @@ export class ConfiguracionCitasController {
     return this.configuracionService.registrarMedico(createMedicoDto);  
   }  
 
-  @Post('medicos-horario')  
+ /* @Post('medicos-horario')  
   @ApiOperation({ summary: 'Registro del horario laboral por médico' })  
   async registrarHorarioMedico(@Body() createHorarioMedicoDto: CreateHorarioMedicoDto) {  
     return this.configuracionService.registrarHorarioMedico(createHorarioMedicoDto);  
-  }  
+  } */ 
 
 
-  @Get('medico-horario/:citm_id')  
+ /* @Get('medico-horario/:citm_id')  
   @ApiOperation({  
     summary: 'Devuelve el horario de un medico por citm_id'  
   })  
@@ -193,7 +193,7 @@ export class ConfiguracionCitasController {
   })  
   async obtenerHorarioMedico(@Param('citm_id') citm_id: number) {  
     return this.configuracionService.obtenerHorarioMedico(citm_id);  
-  }  
+  }*/  
 
 
 
@@ -217,6 +217,21 @@ export class ConfiguracionCitasController {
   async registrarHorarioMedico(@Body() createHorarioMedicoDto: CreateHorarioMedicoDto) {  
     return this.configuracionService.registrarHorarioMedico(createHorarioMedicoDto);  
   }  
+
+
+  @Get('medicos-ver-horario')
+  @ApiOperation({
+    summary: 'Muestra el horario de un medico registrado recibe como parámetro citm_id'
+  })
+  @ApiQuery({
+    name: 'citm_id',
+    type: Number,
+    required: true
+  })
+  async verHorarioMedico(@Query('citm_id') citm_id: number) {
+    return this.configuracionService.verHorarioMedico(citm_id);
+  }
+
 
   
 }  
