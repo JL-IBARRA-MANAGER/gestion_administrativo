@@ -39,10 +39,11 @@ export class ConfiguracionCitasController {
     description: 'Datos para actualizar la configuración del horario',  
     schema: {  
       example: {  
-        tiempoMaximoCita: 30,  
-        intervaloCita: 15,  
-        horaInicio: '08:00',  
-        horaFin: '18:00'  
+        // Cambiar estos nombres para que coincidan con el DTO  
+        citc_tiempo_maximo_cita: 30,  
+        citc_intervalo_cita: 15,  
+        citc_hora_inicio: '08:00',  
+        citc_hora_fin: '18:00'  
       }  
     }  
   })  
@@ -50,8 +51,11 @@ export class ConfiguracionCitasController {
     @Param('citcId') citcId: number,  
     @Body() datosActualizacion: ActualizarConfiguracionCitasDto  
   ) {  
+    console.log('Datos recibidos:', datosActualizacion); // Para debug  
     return this.configuracionService.actualizarConfiguracionHorario(citcId, datosActualizacion);  
   }   
+
+  
 
   // Endpoints de días estándar  
   @Get('dias')  
