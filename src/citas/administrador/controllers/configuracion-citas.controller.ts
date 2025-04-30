@@ -16,6 +16,8 @@ import { CrearEspecialidadDto } from '../dtos/crear-especialidad.dto';
 import { CrearAreaConocimientoDto } from '../dtos/crear-area-conocimiento.dto'; 
 import { CreateMedicoDto } from '../dtos/create-medico.dto'; 
 import { CreateHorarioMedicoDto } from '../dtos/create-horario-medico.dto'; 
+import { CrearMedicoEspecialidadDto } from '../dtos/crear-medico-especialidad.dto'; 
+
 
 
 
@@ -235,6 +237,45 @@ export class ConfiguracionCitasController {
   async verHorarioMedico(@Query('citm_id') citm_id: number) {
     return this.configuracionService.verHorarioMedico(citm_id);
   }
+
+  @Get('medico-especialidad')  
+  @ApiOperation({ summary: 'Obtiene las especialidades registradas a un médico' })  
+  @ApiQuery({   
+    name: 'citm_id',   
+    required: true,   
+    type: Number,  
+    description: 'ID del usuario médico'   
+  })  
+  async obtenerEspecialidadesMedico(@Query('citm_id') citmId: number) {  
+    return this.configuracionService.obtenerEspecialidadesMedico(citmId);  
+  }
+
+  @Post('medico-especialidad')  
+  @ApiOperation({ summary: 'Registra una especialidad a un médico' })  
+  @ApiBody({ type: CrearMedicoEspecialidadDto })  
+  async registrarEspecialidadMedico(  
+    @Body() crearMedicoEspecialidadDto: CrearMedicoEspecialidadDto  
+  ) {  
+    return await this.configuracionService.registrarEspecialidadMedico(crearMedicoEspecialidadDto);  
+  } 
+
+
+  @Get('medicos-especialidad-listado/:citcat_id')  
+  @ApiOperation({ summary: 'Muestra todos los médicos registrados en una especialidad' })  
+  async listarMedicosEspecialidad(  
+    @Param('citcat_id') citcat_id: number  
+  ) {  
+    return this.configuracionService.listarMedicosEspecialidad(citcat_id);  
+  }  
+
+
+  @Put('medico-especialidad/:citme_id')  
+  @ApiOperation({ summary: 'Cambia el estado de una especialidad asignada a un médico, de activa a inactiva' })  
+  async cambiarEstadoEspecialidadMedico(  
+    @Param('citme_id') citme_id: number  
+  ) {  
+    return this.configuracionService.cambiarEstadoEspecialidadMedico(citme_id);  
+  }  
 
 
   

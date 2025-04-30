@@ -9,6 +9,7 @@ import { CrearEspecialidadDto } from '../dtos/crear-especialidad.dto';
 import { CrearAreaConocimientoDto } from '../dtos/crear-area-conocimiento.dto'; 
 import { CreateMedicoDto } from '../dtos/create-medico.dto';
 import { CreateHorarioMedicoDto } from '../dtos/create-horario-medico.dto'; 
+import { CrearMedicoEspecialidadDto } from '../dtos/crear-medico-especialidad.dto';
 
 @Injectable()  
 export class ConfiguracionCitasService {  
@@ -28,10 +29,6 @@ export class ConfiguracionCitasService {
       FROM public.tbl_citas_configuracion  
     `);  
   }  
-
-
-
-  
  
 
   async actualizarConfiguracionHorario(  
@@ -258,7 +255,7 @@ export class ConfiguracionCitasService {
   async obtenerMedicos(): Promise<any[]> {  
     const query = `  
       SELECT   
-        cm.citm_id AS "citm_id",  
+        cm.citm_id AS "citm_id",
         u.usu_nombre AS "Nombre",  
         u.usu_apellido AS "Apellido",   
         ac.citac_nombre AS "Área del conocimiento",  
@@ -454,5 +451,110 @@ export class ConfiguracionCitasService {
       throw new BadRequestException('Error al obtener horario del médico');
     }
   }
+
+
+
+
+  async obtenerEspecialidadesMedico(citmId: number) {  
+    const query = `  
+      SELECT   
+        me.citme_id,  
+        cat.citcat_nombre AS "Especialidad",
+        me.citme_estado 
+      FROM   
+        public.tbl_citas_medicos_especialidad me  
+      INNER JOIN   
+        public.tbl_citas_categorias cat   
+      ON   
+        me.citcat_id = cat.citcat_id  
+      WHERE   
+        me.citm_id = $1    
+    `;  
+
+    return this.configuracionRepository.query(query, [citmId]);  
+  }  
+
+
+  async registrarEspecialidadMedico(dto: CrearMedicoEspecialidadDto) {  
+    const query = `  
+      INSERT INTO public.tbl_citas_medicos_especialidad  
+      (citm_id, citcat_id, citme_estado)  
+      VALUES ($1, $2, 1)  
+      RETURNING *  
+    `;  
+
+    const valores = [  
+      dto.citm_id,  
+      dto.citcat_id  
+    ];  
+
+    try {  
+      const resultado = await this.configuracionRepository.query(query, valores);  
+      return resultado[0];  
+    } catch (error) {  
+      console.error('Error al registrar especialidad de médico:', error);  
+      throw new BadRequestException(error.message || 'Error al registrar especialidad de médico');  
+    }  
+  } 
+
+
+
+  async listarMedicosEspecialidad(citcat_id: number) {  
+    const query = `  
+      SELECT  
+        me.citme_id AS "citmeId",  
+        u.usu_nombre AS "Nombre",  
+        u.usu_apellido AS "Apellido",  
+        me.citme_estado AS "Estado"  
+      FROM  
+        public.tbl_citas_medicos_especialidad me  
+      INNER JOIN  
+        public.tbl_citas_medicos cm ON me.citm_id = cm.citm_id  
+      INNER JOIN  
+        public.tbl_usuarios u ON cm.usu_id = u.usu_id  
+      WHERE  
+        me.citcat_id = $1  
+      ORDER BY  
+        u.usu_nombre, u.usu_apellido  
+    `;  
+
+    try {  
+      const resultado = await this.configuracionRepository.query(query, [citcat_id]);  
+      return resultado;  
+    } catch (error) {  
+      console.error('Error al listar médicos por especialidad:', error);  
+      throw new BadRequestException('Error al obtener el listado de médicos');  
+    }  
+  }    
+
+
+
+  async cambiarEstadoEspecialidadMedico(citme_id: number) {  
+    const query = `  
+      UPDATE public.tbl_citas_medicos_especialidad  
+      SET citme_estado = CASE   
+        WHEN citme_estado = 1 THEN 0   
+        WHEN citme_estado = 0 THEN 1   
+      END  
+      WHERE citme_id = $1  
+      RETURNING *  
+    `;  
+
+    try {  
+      const resultado = await this.configuracionRepository.query(query, [citme_id]);  
+      
+      if (resultado.length === 0) {  
+        throw new BadRequestException('No se encontró el registro especificado');  
+      }  
+
+      return {  
+        message: 'Estado actualizado correctamente',  
+        data: resultado[0]  
+      };  
+    } catch (error) {  
+      console.error('Error al cambiar estado de especialidad médico:', error);  
+      throw new BadRequestException(error.message || 'Error al actualizar el estado');  
+    }  
+  }  
 
 }  

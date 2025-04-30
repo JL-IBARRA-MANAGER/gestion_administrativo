@@ -1,0 +1,13 @@
+// src/citas/administrador/dtos/listar-medicos-especialidad.dto.ts  
+import { ApiProperty } from '@nestjs/swagger';  
+import { IsNumber, IsNotEmpty } from 'class-validator';  
+
+export class ListarMedicosEspecialidadDto {  
+  @ApiProperty({  
+    description: 'ID de la categoría/especialidad',  
+    example: 1  
+  })  
+  @IsNumber()  
+  @IsNotEmpty()  
+  citcat_id: number;  
+}  
