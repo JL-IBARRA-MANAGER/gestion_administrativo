@@ -257,7 +257,8 @@ export class ConfiguracionCitasService {
       SELECT   
         cm.citm_id AS "citm_id",
         u.usu_nombre AS "Nombre",  
-        u.usu_apellido AS "Apellido",   
+        u.usu_apellido AS "Apellido", 
+        cm.citac_id AS "citac_id",  
         ac.citac_nombre AS "Área del conocimiento",  
         cm.citm_descripcion AS "Descripción",  
         cm.citm_estado AS "citm_estado"  
