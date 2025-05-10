@@ -21,7 +21,7 @@ import { CrearMedicoEspecialidadDto } from '../dtos/crear-medico-especialidad.dt
 
 
 
-@ApiTags('Administrador - Configuración de Citas')  
+@ApiTags('Citas - Administrador')  
 @Controller('administrador/citas-configuracion')  
 export class ConfiguracionCitasController {  
   constructor(  
